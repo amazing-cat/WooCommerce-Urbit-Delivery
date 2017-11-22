@@ -1,0 +1,29 @@
+.cart_totals .shipping p {
+	margin-bottom: 9px !important;
+}
+
+.cart_totals .form-row label {
+	display: block;
+}
+
+.cart_totals .form-row input,
+.urb-it-delivery-time input,
+.urb-it-message input {
+	background: #fff;
+	border: 1px solid #D8D8D8;
+	line-height: 1em;
+	padding: 0.5em;
+	min-width: 0;
+	max-width: 100%;
+}
+
+/* hour minute dropdowns */
+
+#urb_it_hour, #urb_it_minute {
+	width: 100%;
+	display: inline-block;
+}
+
+#urb_it_time {
+	/*display: none !important;*/
+}
