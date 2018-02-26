@@ -1,0 +1,80 @@
+.cart_totals .shipping p {
+	margin-bottom: 9px !important;
+}
+
+.cart_totals .form-row label {
+	display: block;
+}
+
+.confirm-dialog {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+	background-color: rgba(2, 2, 2, 0.6);
+}
+
+.confirm-dialog .confirm-dialog-block{
+	position: relative;
+    width: 500px;
+    height: 300px;
+    top: 30%;
+    left: 40%;
+    background-color: white;
+    border-radius: 10px;
+	padding: 50px;
+}
+
+.confirm-dialog .confirm-dialog-block .confirm-dialog-block-buttons {
+	display: inline-flex;
+	position: absolute;
+	bottom: 5%;
+	left: 12%;
+}
+
+.confirm-dialog .confirm-dialog-block .dialog-button {
+	background-color: gainsboro;
+    width: 150px;
+    margin: 20px 20px;
+    padding: 10px 20px;
+    text-align: center;
+    border-radius: 10px;
+	cursor: pointer;
+}
+
+.confirm-dialog .confirm-dialog-block .dialog-text {
+	font-size: 24px;
+	text-align: center;
+}
+
+.confirm-dialog .confirm-dialog-block .dialog-button-no {
+	background-color: #e2401c;
+	color: white;
+}
+
+.cart_totals .form-row input,
+.urb-it-delivery-time input,
+.urb-it-message input {
+	background: #fff;
+	border: 1px solid #D8D8D8;
+	line-height: 1em;
+	padding: 0.5em;
+	min-width: 0;
+	max-width: 100%;
+}
+
+/* hour minute dropdowns */
+
+.urb-it-delivery-time td {
+	width: 45%;
+}
+
+#urb_it_hour, #urb_it_minute {
+	width: 48%;
+	display: inline-block;
+}
+
+#urb_it_time {
+	/*display: none !important;*/
+}
