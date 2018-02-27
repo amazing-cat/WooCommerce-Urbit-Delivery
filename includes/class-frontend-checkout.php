@@ -48,29 +48,38 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
             'email' => $order->get_billing_email(),
         );
 
-        if ($order->get_shipping_method() != 'urb-it now')
-            $delivery_time = get_option(self::SETTINGS_PREFIX . $environment . '_delivery_time');
+        $now_offset = $this->create_date($this->now_offset());
+        if ($order->get_shipping_method() != 'urb-it now') {
+            $time_record = get_option(self::SETTINGS_PREFIX . $environment . '_delivery_time');
+            $time = DateTime::createFromFormat('Y-m-d H:i:s',
+                str_replace('T', ' ', explode('+', $time_record)[0]));
+            $delivery_time = $time->getTimestamp();
+        }
         else {
+            $time = new DateTime();
             $openning_hours = $this->opening_hours->get();
-            $now = new DateTime();
-            $now_offset = $this->create_date($this->now_offset());
             $last = $openning_hours[0]->last_delivery;
-            $last->sub(new DateInterval('PT' . $now_offset->format('h') . 'H' . $now_offset->format('i') . 'M'));
-            if (($now->format('H') >= $openning_hours[0]->open->format('H')) &&
-                ($now <= $last))
+            try {
+                $last->sub(new DateInterval('PT' . $now_offset->format('h') . 'H' . $now_offset->format('i') . 'M'));
+            } catch (Exception $e) {
+            }
+            if (($time->format('H') >= $openning_hours[0]->open->format('H')) &&
+                ($time <= $last))
                 $timestamp = $now_offset;
-            if ($now->format('H') < $openning_hours[0]->open->format('H'))
+            if ($time->format('H') < $openning_hours[0]->open->format('H'))
                 $timestamp = $openning_hours[0]->first_delivery;
-            if ($now > $last)
+            if ($time > $last)
                 $timestamp = $openning_hours[1]->first_delivery;
             $delivery_time = $timestamp->getTimestamp();
-            $now_offset->sub(new DateInterval(self::STD_PROCESS_TIME));
-            update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id, date('c', $delivery_time));
-            wp_schedule_single_event($now_offset->getTimestamp(), 'preparation_time', array(date('c', $delivery_time), $message, $recipient, $checkout_id, $order_id));
-            return;
         }
 
-        $this->validate->order($delivery_time, $message, $recipient, $checkout_id);
+        try {
+            $now_offset->sub(new DateInterval(self::STD_PROCESS_TIME));
+        } catch (Exception $e) {
+        }
+        update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id, date('c', $delivery_time));
+        wp_schedule_single_event($now_offset->getTimestamp(), 'preparation_time', array(date('c', $delivery_time), $message, $recipient, $checkout_id, $order_id));
+        return;
     }
 
     function sync_cart()

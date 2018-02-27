@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Urb-it Shipping
  * Plugin URI: http://urb-it.com/
  * Description: Let your customers choose urb-it as shipping method.
- * Version: 1.1.4
+ * Version: 3.0.3
  * Author: Webbmekanikern
  * Author URI: http://www.webbmekanikern.se/
  * Text Domain: woocommerce-urb-it
@@ -20,7 +20,7 @@ define('WOOCOMMERCE_URB_IT_PLUGIN_ROOT', __DIR__);
 
 class WooCommerce_Urb_It
 {
-    const VERSION = '1.1.4';
+    const VERSION = '3.0.3';
     const LANG    = 'woocommerce-urb-it';
 
     const COMPANY_URL = 'https://urb-it.com/';
@@ -60,13 +60,9 @@ class WooCommerce_Urb_It
     protected $update_checker;
 
     protected $country_codes = array(
-        '46',  // Sweden
-        '33',  // France
-    );
-
-    protected $mobile_prefixes = array(
-        '07', // Generic
-        '06'  // France
+        '46',
+        '33',
+        '44',
     );
 
     /**
@@ -387,10 +383,18 @@ class WooCommerce_Urb_It
     function sanitize_phone($phone)
     {
         $phone = str_replace(' ', '', $phone);
-        if (substr($phone, 0, 1) != '+') $phone = '+' . $phone;
-        if (strlen($phone) != 13) return false;
-        if (!in_array(substr($phone, 1, 2), $this->country_codes)) return false;
-        return $phone;
+        switch (substr($phone, 0, 1)) {
+            case '+':
+                if (!in_array(substr($phone, 1, 2), $this->country_codes)) return false;
+                return preg_match('/^[1-9]\d( ?\d){5,10}$/', substr($phone, 3)) ? $phone : false;
+                break;
+            case '0':
+                return preg_match('/^0[1-9]\d( ?\d){5,10}$/', $phone) ? $phone : false;
+                break;
+            default:
+                return false;
+                break;
+        }
     }
 
     /**
