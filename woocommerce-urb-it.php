@@ -27,7 +27,8 @@ class WooCommerce_Urb_It
     const UPDATE_URL  = 'https://download.urb-it.com/woocommerce/woocommerce-urb-it/update.json';
 
     const ORDER_MAX_WEIGHT = 10; // kg
-    const ORDER_MAX_VOLUME = 142000; // cm3 (1 liter = 1000 cm3)
+    //const ORDER_MAX_VOLUME = 142000; // cm3 (1 liter = 1000 cm3)
+    const ORDER_MAX_VOLUME = 250000; // cm3 (1 liter = 1000 cm3)
 
     const OPTION_VERSION               = 'wc-urb-it-version';
     const OPTION_GENERAL               = 'wc-urb-it-general';
@@ -117,7 +118,7 @@ class WooCommerce_Urb_It
         // Widget
         add_action('widgets_init', array($this, 'register_widget'));
 
-        add_filter('woocommerce_order_button_html', array($this, 'woocommerce_order_confirm'), 99);
+        //add_filter('woocommerce_order_button_html', array($this, 'woocommerce_order_confirm'), 99);
     }
 
     /**
@@ -152,21 +153,21 @@ class WooCommerce_Urb_It
         return $this->{$name};
     }
 
-    function woocommerce_order_confirm($input_submit)
-    {
-        $order_button_text = explode('"', explode('value=', $input_submit)[1])[1];
-        $confirm_button = '<div id="order_confirmation" class="button alt">' . esc_attr($order_button_text) . '</div>';
-
-        ob_start();
-        $this->template('checkout/confirm_dialog');
-        $dialog = ob_get_clean();
-
-        if (get_option(self::SETTINGS_PREFIX . 'order_confirmation') === 'yes') {
-            return $dialog . $confirm_button;
-        }
-
-        return $input_submit;
-    }
+    // function woocommerce_order_confirm($input_submit)
+    // {
+    //     $order_button_text = explode('"', explode('value=', $input_submit)[1])[1];
+    //     $confirm_button = '<div id="order_confirmation" class="button alt">' . esc_attr($order_button_text) . '</div>';
+    //
+    //     ob_start();
+    //     $this->template('a');
+    //     $dialog = ob_get_clean();
+    //
+    //     if (get_option(self::SETTINGS_PREFIX . 'order_confirmation') === 'yes') {
+    //         return $dialog . $confirm_button;
+    //     }
+    //
+    //     return $input_submit;
+    // }
 
     /**
      * @param string $name
@@ -384,16 +385,16 @@ class WooCommerce_Urb_It
      *
      * @return string
      */
-    function sanitize_phone($phone) 
+    function sanitize_phone($phone)
     {
         $phone = preg_replace(array('/\D/', '/^(00)?(' . implode('|', $this->country_codes) . ')0?/'), array('', '0'), $phone);
-        
+
         if(!in_array(substr($phone, 0, 2), $this->mobile_prefixes) || strlen($phone) !== 10) return false;
-        
+
         return $phone;
     }
 
-      
+
 
     /**
      * @return bool
