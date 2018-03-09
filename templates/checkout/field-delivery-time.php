@@ -10,7 +10,7 @@
 
 			<input id="time_offset" type="text" value="<?= $time_offset->format('%h:%i') ?>" hidden />
 
-			<?php error_log(print_r($days, true)); if(!$hide_date_field): ?>
+			<?php if(!$hide_date_field): ?>
 				<p id="urb_it_date_field" class="form-row form-row-wide">
 					<label for="urb_it_date"><?php _e('Day', self::LANG); ?></label>
 					<select id="urb_it_date" name="urb_it_date">

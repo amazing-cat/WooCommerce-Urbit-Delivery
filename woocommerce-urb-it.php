@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Urb-it Shipping
  * Plugin URI: http://urb-it.com/
  * Description: Let your customers choose urb-it as shipping method.
- * Version: 1.1.4
+ * Version: 3.0.3
  * Author: Webbmekanikern
  * Author URI: http://www.webbmekanikern.se/
  * Text Domain: woocommerce-urb-it
@@ -20,15 +20,14 @@ define('WOOCOMMERCE_URB_IT_PLUGIN_ROOT', __DIR__);
 
 class WooCommerce_Urb_It
 {
-    const VERSION = '1.1.4';
+    const VERSION = '3.0.3';
     const LANG    = 'woocommerce-urb-it';
 
     const COMPANY_URL = 'https://urb-it.com/';
     const UPDATE_URL  = 'https://download.urb-it.com/woocommerce/woocommerce-urb-it/update.json';
 
     const ORDER_MAX_WEIGHT = 10; // kg
-    //const ORDER_MAX_VOLUME = 142000; // cm3 (1 liter = 1000 cm3)
-    const ORDER_MAX_VOLUME = 250000; // cm3 (1 liter = 1000 cm3)
+    const ORDER_MAX_VOLUME = 142000; // cm3 (1 liter = 1000 cm3)
 
     const OPTION_VERSION               = 'wc-urb-it-version';
     const OPTION_GENERAL               = 'wc-urb-it-general';
@@ -157,15 +156,15 @@ class WooCommerce_Urb_It
     // {
     //     $order_button_text = explode('"', explode('value=', $input_submit)[1])[1];
     //     $confirm_button = '<div id="order_confirmation" class="button alt">' . esc_attr($order_button_text) . '</div>';
-    //
+
     //     ob_start();
-    //     $this->template('a');
+    //     $this->template('checkout/confirm_dialog');
     //     $dialog = ob_get_clean();
-    //
+
     //     if (get_option(self::SETTINGS_PREFIX . 'order_confirmation') === 'yes') {
     //         return $dialog . $confirm_button;
     //     }
-    //
+
     //     return $input_submit;
     // }
 
@@ -378,7 +377,7 @@ class WooCommerce_Urb_It
         }
     }
 
-    /**
+     /**
      * Sanitize phone number to the format "0701234567"
      *
      * @param string $phone
@@ -388,12 +387,9 @@ class WooCommerce_Urb_It
     function sanitize_phone($phone)
     {
         $phone = preg_replace(array('/\D/', '/^(00)?(' . implode('|', $this->country_codes) . ')0?/'), array('', '0'), $phone);
-
         if(!in_array(substr($phone, 0, 2), $this->mobile_prefixes) || strlen($phone) !== 10) return false;
-
         return $phone;
     }
-
 
 
     /**

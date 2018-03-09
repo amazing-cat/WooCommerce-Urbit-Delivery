@@ -2,9 +2,9 @@ jQuery(function($) {
 	var remember_message = '';
 
 	$(document).on('change', '#urb_it_date', function() {
-		set_time_field();
+		set_time_field(false);
 	}).ready(function() {
-		set_time_field();
+		set_time_field(false);
 	}).ajaxComplete(function(event, xhr, ajaxOpts) {
 		$("#order_confirmation").on("click", function() {
 			$(".confirm-dialog").show();
@@ -18,7 +18,7 @@ jQuery(function($) {
 
 		if(ajaxOpts.url.indexOf('update_order_review') === -1 && ajaxOpts.url.indexOf('urb_it') === -1) return;
 
-		set_time_field();
+		set_time_field(false);
 
 		if(remember_message) $('#urb_it_message').val(remember_message);
 	}).on('change', '#urb_it_message', function() {
@@ -26,10 +26,10 @@ jQuery(function($) {
 	});
 
 	$(document.body).on('urbit_set_time_field', function() {
-		set_time_field();
+		set_time_field(false);
 	});
 
-	function set_time_field() {
+	function set_time_field(update) {
 		var date = $('#urb_it_date'),
 				time = $('#urb_it_time');
 
@@ -50,10 +50,11 @@ jQuery(function($) {
 		// Specific opening hours
 		else {
 			// Modify label
-			$('#urb_it_time_field .time-display').text('(' + time_open + ' - ' + time_close + ')');
 
-            $('#urb_it_hour').val("");
-            $('#urb_it_minute').val("");
+			if (!update) {
+                $('#urb_it_hour').val("");
+                $('#urb_it_minute').val("");
+            }
 
 			var now_offset = $('#time_offset').val().split(':'),
 				now = new Date(),
@@ -67,7 +68,7 @@ jQuery(function($) {
                 end_border,
 				time_now;
 
-			if ((is_today && (parseInt(now.getHours()) >= parseInt(time_open.split(":")[0]))) || !is_today) {
+			if ((is_today && (parseInt(now.getHours()) <= parseInt(time_open.split(":")[0]))) || !is_today) {
                 start_hours_border = parseInt(time_first_delivery.split(":")[0]);
                 start_minutes_border = parseInt(time_first_delivery.split(":")[1]) + 15;
             } else {
@@ -83,15 +84,23 @@ jQuery(function($) {
             start_border = correct_time(start_hours_border, start_minutes_border);
 			end_border = correct_time(end_hours_border, end_minutes_border);
 
+            $('#urb_it_time_field .time-display').text(
+            	'('
+				+ ('0' + start_border[0]).slice(-2) + ':' + ('0' + start_border[1]).slice(-2)
+				+ ' - '
+				+ ('0' + end_border[0]).slice(-2) + ':' + ('0' + end_border[1]).slice(-2)
+				+ ')'
+			);
+
             $('#urb_it_hour option').each(function(){
 
                 //hide
                 if($(this).val() < start_border[0]
-                || $(this).val() > end_border[0]) $(this).css('display', 'none');
+                || $(this).val() >= end_border[0]) $(this).css('display', 'none');
 
                 //show
                 if($(this).val() >= start_border[0]
-                && $(this).val() <= end_border[0]) $(this).css('display', 'block');
+                && $(this).val() < end_border[0]) $(this).css('display', 'block');
 
 				if (is_today && ($(this).val() < start_border[0])) {
 					$(this).css('display', 'none');
@@ -155,11 +164,13 @@ jQuery(function($) {
             });
 
 			// Modify time value if not valid
-			if(is_today && time_now > time_close) {
+			if(is_today && time_now > time_last_delivery) {
 				$('.error').show();
+                $('.time-display').hide();
 			}
 			else {
 				$('.error').hide();
+                $('.time-display').show();
 			}
 		}
 	}
@@ -198,32 +209,7 @@ jQuery(function($) {
 
 	// Adjust the lower time each second
 	function adjust_time() {
-		var option = $('#urb_it_date :selected'),
-				is_today = (option.length && option.data('today'));
-
-		if(is_today) {
-			var now = new Date(),
-				local_timezone = now.getTimezoneOffset() / 60,
-				now_offset = $('#time_offset').val().split(':'),
-				hour_border = parseInt(now.getHours()) + parseInt(local_timezone) + parseInt(now_offset[0]),
-				minutes_border = parseInt(now.getMinutes()) + parseInt(now_offset[1]) + 15,
-				time_open = option.data('open'),
-				time_close = option.data('close');
-
-			if (minutes_border > 59) {
-				hour_border++;
-				minutes_border -= 60;
-			}
-			if (hour_border < 0) hour_border += 24;
-			if (hour_border > 23) hour_border -= 24;
-
-			var time_now = ('0' + hour_border).slice(-2) + ':' + ('0' + minutes_border).slice(-2);
-
-			if(time_open < time_now) {
-				option.data('open', time_now);
-				$('#urb_it_time_field .time-display').text('(' + time_now + ' - ' + time_close + ')');
-			}
-		}
+        set_time_field(true);
 
 		setTimeout(adjust_time, 1000);
 	}

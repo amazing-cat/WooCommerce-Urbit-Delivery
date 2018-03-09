@@ -48,7 +48,6 @@ class WooCommerce_Urb_It_Validate extends WooCommerce_Urb_It
         }
 
         return $valid;
-
     }
 
     // Validate: Cart weight
@@ -81,7 +80,6 @@ class WooCommerce_Urb_It_Validate extends WooCommerce_Urb_It
             $total_volume += wc_get_dimension((int)$_product->get_length(), 'cm')
                 * wc_get_dimension((int)$_product->get_width(), 'cm')
                 * wc_get_dimension((int)$_product->get_height(), 'cm');
-
         }
 
         if ($total_volume > self::ORDER_MAX_VOLUME) {
@@ -98,8 +96,6 @@ class WooCommerce_Urb_It_Validate extends WooCommerce_Urb_It
         }
 
         return $valid;
-
-      
     }
 
     // Validate: Cart bulkiness
