@@ -1,24 +1,20 @@
 <?php
+
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Class WooCommerce_Urb_It_Order
- */
 class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
 {
     function __construct()
     {
         add_action('init', array($this, 'register_order_status'));
         add_filter('wc_order_statuses', array($this, 'order_statuses'));
-
         add_action('woocommerce_checkout_update_order_meta', array($this, 'save_data'), 10, 2);
         add_action('woocommerce_order_status_changed', array($this, 'status_event'), 10, 4);
     }
 
-    // Order status: Register
     function register_order_status()
     {
         register_post_status('wc-picked-up', array(
@@ -32,7 +28,6 @@ class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
         ));
     }
 
-    // Order status: Add among others
     function order_statuses($order_statuses)
     {
         $new_order_statuses = array();
@@ -49,7 +44,6 @@ class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
         return $new_order_statuses;
     }
 
-    // Order created
     function save_data($order_id, $posted)
     {
         $delivery_time =

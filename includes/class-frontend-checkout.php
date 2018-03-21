@@ -1,12 +1,10 @@
 <?php
+
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Class WooCommerce_Urb_It_Frontend_Checkout
- */
 class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
 {
     protected $added_assets = false;
@@ -14,22 +12,18 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
     function __construct()
     {
         add_action('woocommerce_review_order_after_shipping', array($this, 'fields'));
-        //add_action('woocommerce_after_checkout_validation', array($this, 'validate_fields'));
         add_action('woocommerce_after_checkout_form', array($this, 'add_assets'));
-
-        // Notices
         add_action('woocommerce_before_checkout_form', array($this, 'notice_checkout'));
         add_action('woocommerce_before_cart', array($this, 'notice_checkout'));
         add_action('woocommerce_review_order_after_shipping', array($this, 'notice_checkout_shipping'));
-
         add_action('woocommerce_after_checkout_validation', array($this, 'validate_form'));
         add_action('woocommerce_after_checkout_form', array($this, 'sync_cart'));
         add_action('woocommerce_thankyou', array($this, 'sync_checkout'));
         add_action('preparation_time', array($this, 'send_order'), 10, 5);
+        add_filter('woocommerce_shipping_packages', array($this, 'check_urbit_now_availability'), 100, 1);
     }
 
     function sync_checkout($order_id) {
-        $checkout_id = '';
         $environment = get_option(self::SETTINGS_PREFIX . 'environment');
         $cart_reference = get_option(self::SETTINGS_PREFIX . $environment . '_cart_reference');
         $checkout_id = $this->urbit->InitiateCheckout($cart_reference);
@@ -51,19 +45,8 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
         if ($order->get_shipping_method() != 'urb-it now')
             $delivery_time = get_option(self::SETTINGS_PREFIX . $environment . '_delivery_time');
         else {
-            $openning_hours = $this->opening_hours->get();
-            $now = new DateTime();
             $now_offset = $this->create_date($this->now_offset());
-            $last = $openning_hours[0]->last_delivery;
-            $last->sub(new DateInterval('PT' . $now_offset->format('h') . 'H' . $now_offset->format('i') . 'M'));
-            if (($now->format('H') >= $openning_hours[0]->open->format('H')) &&
-                ($now <= $last))
-                $timestamp = $now_offset;
-            if ($now->format('H') < $openning_hours[0]->open->format('H'))
-                $timestamp = $openning_hours[0]->first_delivery;
-            if ($now > $last)
-                $timestamp = $openning_hours[1]->first_delivery;
-            $delivery_time = $timestamp->getTimestamp();
+            $delivery_time = $now_offset->getTimestamp();
             $now_offset->sub(new DateInterval(self::STD_PROCESS_TIME));
             update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id, date('c', $delivery_time));
             wp_schedule_single_event($now_offset->getTimestamp(), 'preparation_time', array(date('c', $delivery_time), $message, $recipient, $checkout_id, $order_id));
@@ -73,6 +56,9 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
         $this->validate->order($delivery_time, $message, $recipient, $checkout_id);
     }
 
+    /**
+     * Send cart data to Urb-it
+     */
     function sync_cart()
     {
         $cart = wc()->cart->get_cart();
@@ -150,16 +136,19 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
             return;
         }
 
+        ////////////////
         ?>
+
         <tr class="urb-it-shipping">
             <th>&nbsp;</th>
             <td style="color: #d00;"><?php _e('As the delivery location is outside urb-it\'s availability zone, urb-it is disabled for this order.',
                     self::LANG); ?></td>
         </tr>
+
         <?php
+        ////////////////
     }
 
-    // Checkout: Fields
     function fields($is_cart = false)
     {
         $shipping_method =
@@ -167,54 +156,43 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
 
         $this->log('Chosen shipping method:', $shipping_method);
 
-        if (empty($shipping_method)) {
+        if (empty($shipping_method))
             return;
-        }
 
         $message = wc()->session->get('urb_it_message');
-        $now_time_offset = $this->create_date($this->now_offset());
+        $now_time_with_offset = $this->create_date($this->now_offset());
+        $time_offset = $now_time_with_offset->diff(new DateTime());
 
-        if (in_array('urb_it_specific_time', $shipping_method)) {
+        if (in_array('urb_it_specific_time', $shipping_method))
             $this->template('checkout/field-delivery-time', array(
                 'is_cart' => $is_cart,
+                'message' => $message,
                 'hide_date_field' => false,
                 'hide_time_field' => false,
-                'selected_delivery_time' => $this->date(wc()->session->get('urb_it_delivery_time',
-                    $this->specific_time_offset())),
-                'now' => $this->date('now'),
-                'time_offset' => $now_time_offset->diff(new DateTime()),
+                'time_offset' => $time_offset,
+                'now' => $now_time_with_offset->add(new DateInterval(self::SPECIFIC_TIME_ADD)),
                 'days' => $this->opening_hours->get(),
             ));
-
-            $this->template('checkout/field-message', compact('is_cart', 'message'));
-        } elseif (in_array('urb_it_one_hour', $shipping_method)) {
-            $this->template('checkout/field-message', compact('is_cart', 'message'));
-        }
+        elseif (in_array('urb_it_one_hour', $shipping_method))
+            $this->template('checkout/field-message', compact('is_cart', 'message', 'time_offset'));
     }
 
-    // Validate: Checkout fields
-    function validate_form($posted) {
-        $field_type = 'billing';
-
-        if (isset($_POST['ship_to_different_address'])) {
+    function validate_form($posted)
+    {
+        if (isset($_POST['ship_to_different_address']))
             $field_type = 'shipping';
-        }
 
         if (!isset($posted['shipping_method'])
             || (!in_array('urb_it_one_hour', $posted['shipping_method'])
-                && !in_array('urb_it_specific_time', $posted['shipping_method']))) {
+                && !in_array('urb_it_specific_time', $posted['shipping_method'])))
             return;
-        }
 
         $phone = $this->sanitize_phone($posted['billing_phone']);
 
-        if (!$phone) {
+        if (!$phone)
             throw new Exception(__('Please enter a valid cellphone number.', self::LANG));
-        }
 
         if (in_array('urb_it_specific_time', $posted['shipping_method'])) {
-            $delivery_type = 'Specific';
-
             $valid_time = true;
             $date = trim($_POST['urb_it_date']);
             $time = trim($_POST['urb_it_hour'] . ':' . $_POST['urb_it_minute']);
@@ -223,44 +201,41 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
             $environment = get_option(self::SETTINGS_PREFIX . 'environment');
 
             if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $date)) {
-                throw new Exception(sprintf(__('Please enter a delivery date in the format YYYY-MM-DD, ex: %s.',
-                    self::LANG), date('Y-m-d')));
+                try {
+                    throw new Exception(sprintf(__('Date is not set. Please choose the right value and try again.',
+                        self::LANG)));
+                } catch (Exception $e) {
+                }
             }
 
-            if (!preg_match('/^\d{1,2}\:\d{2}$/', $time)) {
-                throw new Exception(sprintf(__('Please enter a delivery time in the format HH:MM, ex: %s.', self::LANG),
-                    date('H:i')));
-            }
+            if (!preg_match('/^\d{1,2}\:\d{2}$/', $time))
+                throw new Exception(sprintf(__('Time is not set. Please choose the right values and try again.', self::LANG)));
 
-            if (!$valid_time) {
+            if (!$valid_time)
                 return;
-            }
 
             $delivery_time = $this->date($date . ' ' . $time);
             update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time', date('c', $delivery_time->getTimestamp()));
-            $min_time = $this->date($this->specific_time_offset(false));
 
-            if ($delivery_time < $min_time) {
-                throw new Exception(sprintf(__('Please pick a time from %s and forward.', self::LANG),
-                    $min_time->format('H:i')));
+        } elseif (in_array('urb_it_one_hour', $posted['shipping_method'])) {
+            $available_hours = $this->opening_hours->get();
+            $now = $this->create_date($this->now_offset());
 
-                return;
-            }
-            if ($delivery_time > $date_limit) {
-                throw new Exception(sprintf(__('We can unfortunately not deliver this far in the future, please choose a date not later than %s.',
-                    self::LANG), date_i18n('j F', $date_limit->getTimestamp())));
-
-                return;
-            }
+            if ($available_hours[0]->first_delivery->format('Y-m-d') !== $now->format('Y-m-d') ||
+                $available_hours[0]->first_delivery > $now || $available_hours[0]->last_delivery < $now)
+                throw new Exception(sprintf(__('Urb-it now shipping is not available right now...', self::LANG)));
         }
+
         if (apply_filters('woocommerce_urb_it_skip_validation', false)) {
+
             $this->log('Order validation skipped with filter ("woocommerce_urb_it_skip_validation") - aborting.');
 
             return;
         }
     }
 
-    function send_order($delivery_time, $message, $recipient, $checkout_id, $order_id) {
+    function send_order($delivery_time, $message, $recipient, $checkout_id, $order_id)
+    {
         $this->validate->order($delivery_time, $message, $recipient, $checkout_id);
 
         $environment = get_option(self::SETTINGS_PREFIX . 'environment');
@@ -268,14 +243,29 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
         delete_option( self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id );
     }
 
-    // Checkout: Assets
+    function check_urbit_now_availability($packages)
+    {
+        $available_hours = $this->opening_hours->get();
+        $now = $this->create_date($this->now_offset());
+
+        if ($available_hours[0]->first_delivery->format('Y-m-d') !== $now->format('Y-m-d') ||
+            $available_hours[0]->first_delivery > $now || $available_hours[0]->last_delivery < $now)
+            foreach ($packages[0]['rates'] as $key => $item)
+                if ($key === 'urb_it_one_hour')
+                    unset($packages[0]['rates'][$key]);
+
+        return $packages;
+    }
+
     function add_assets()
     {
-        if (!apply_filters('woocommerce_urb_it_add_checkout_assets', true) || $this->added_assets) {
+        if (!apply_filters('woocommerce_urb_it_add_checkout_assets', true) || $this->added_assets)
             return;
-        }
+
+        /////////////////
 
         ?>
+
         <style>
             <?php include $this->path . 'assets/css/urb-it-checkout.css'; ?>
         </style>
@@ -284,7 +274,10 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
             if (!ajaxurl) var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
             <?php include $this->path . 'assets/js/urb-it-checkout.js'; ?>
         </script>
+
         <?php
+        /////////////////
+
         $this->added_assets = true;
     }
 }

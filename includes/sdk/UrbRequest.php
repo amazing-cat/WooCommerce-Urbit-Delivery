@@ -6,18 +6,13 @@ class UrbRequest
     const STAGE_BASE_URL = 'https://sandbox.urb-it.com/v2/';
 
     protected $x_api_key;
-
     protected $bearer_token;
-
     protected $stage = true;
-
     protected $baseUrl;
-
     public $httpStatus;
-
     public $httpBody;
 
-    public function __construct($x_api_key = '', $bearer_token = '', $stage = false)
+    function __construct($x_api_key = '', $bearer_token = '', $stage = false)
     {
         if (version_compare(PHP_VERSION, '5.2.0') < 0) {
             throw new Exception('UrbRequest requires at least PHP version 5.2.0.');
@@ -41,7 +36,7 @@ class UrbRequest
         }
     }
 
-    public function GetDeliveryHours()
+    function GetDeliveryHours()
     {
         $this->Call('GET', 'deliveryhours');
 
@@ -52,7 +47,7 @@ class UrbRequest
         return $this->httpBody->items;
     }
 
-    public function ValidateDeliveryAddress($data_to_validate = array('street' => '', 'postcode' => '', 'city' => ''))
+    function ValidateDeliveryAddress($data_to_validate = array('street' => '', 'postcode' => '', 'city' => ''))
     {
         if (!preg_match('/^[\d]{3}\s?[\d]{2}$/', $data_to_validate['postcode'])) {
             throw new Exception('Invalid postal code.');
@@ -70,7 +65,8 @@ class UrbRequest
         return ($this->httpStatus === 200);
     }
 
-    public function SetDeliveryTimePlaceRecipient($checkout_id, $order) {
+    function SetDeliveryTimePlaceRecipient($checkout_id, $order)
+    {
         $this->Call('PUT', 'checkouts/' . $checkout_id . '/delivery', $order);
 
         if ($this->httpStatus !== 204) {
@@ -81,12 +77,11 @@ class UrbRequest
             }
         }
 
-        error_log(print_r($this->httpStatus, true));
-
         return $this->httpBody;
     }
 
-    public function CreateCart($items) {
+    function CreateCart($items)
+    {
         $this->Call('POST', 'carts', $items);
 
         if ($this->httpStatus !== 201) {
@@ -100,7 +95,7 @@ class UrbRequest
         return $this->httpBody->id;
     }
 
-    public function InitiateCheckout($cart_reference)
+    function InitiateCheckout($cart_reference)
     {
         $this->Call('POST', 'checkouts', array('cart_reference' => $cart_reference));
 
@@ -161,5 +156,3 @@ class UrbRequest
         return $this->httpStatus;
     }
 }
-
-?>

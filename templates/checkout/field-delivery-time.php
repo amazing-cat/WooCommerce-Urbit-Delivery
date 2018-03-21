@@ -1,7 +1,3 @@
-<?php
-	$min_delivery_time = $this->date($this->specific_time_offset());
-?>
-
 <?php if(!$is_cart): ?>
 	<tr class="urb-it-delivery-time">
 		<th><?php _e('Delivery time', self::LANG); ?></th>
@@ -17,14 +13,8 @@
 						<option value="Day" disabled selected="selected">Day</option>
 						<?php foreach($days as $day): ?>
 							<?php
-								if($min_delivery_time > $day->close) continue;
-
-								$is_selected = ($day->open->format('Y-m-d') === $selected_delivery_time->format('Y-m-d'));
-								$is_today = ($day->open->format('Y-m-d') === $now->format('Y-m-d'));
-
-								if($is_today && $min_delivery_time > $day->open) {
-									$day->open = $min_delivery_time;
-								}
+                                $is_today = ($day->open->format('Y-m-d') === $now->format('Y-m-d'));
+                                if ($is_today && $day->last_delivery < $now) continue;
 							?>
 							<option value="<?= $day->open->format('Y-m-d') ?>"
                                     data-first-delivery="<?= $day->first_delivery->format('H:i') ?>"
@@ -39,19 +29,13 @@
                             </option>
 						<?php endforeach; ?>
 					</select>
-				</p><!-- #urb_it_date_field -->
+				</p>
 			<?php endif; ?>
 
 			<?php if(!$hide_time_field): ?>
 				<p id="urb_it_time_field" class="form-row form-row-wide">
 					<label for="urb_it_time"><?php _e('Time', self::LANG); ?></label>
 					<label class="time-display"></label>
-
-										<?php
-
-										// Temporarily remove hour and minute dropdowns as they don't work with Klarna
-
-                    /*<!-- time dropdowns -->*/?>
 
                     <select id="urb_it_hour" name="urb_it_hour">
 
@@ -71,16 +55,14 @@
 
                         <?php foreach(range(0, 45, 15) as $minute): ?>
 
-                            <?php if($minute == 0) { $minute = '00'; } ?>
+                            <?php if($minute == 0) $minute = '00'; ?>
 
                             <option value="<?php echo $minute; ?>"><?php echo $minute; ?></option>
 
                         <?php endforeach; ?>
 
                     </select>
-
-					<span class="error"><?php _e('Closed', self::LANG); ?></span>
-				</p><!-- #urb_it_time_field -->
+				</p>
 			<?php endif; ?>
 
 <?php if(!$is_cart): ?>

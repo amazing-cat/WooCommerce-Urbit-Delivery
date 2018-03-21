@@ -42,8 +42,9 @@ class WooCommerce_Urb_It
 
     const DATE_FORMAT = DateTime::ATOM;
 
-    const STD_PROCESS_TIME = 'PT1H30M';
+    const STD_PROCESS_TIME = 'PT1H30M'; // in DateInterval format
     const DEFAULT_PREPARE_TIME = '30'; // in minutes
+    const SPECIFIC_TIME_ADD = 'PT15M'; // in minutes
 
     protected static $_instance;
 
@@ -92,32 +93,21 @@ class WooCommerce_Urb_It
         return self::$_instance;
     }
 
-    /**
-     * WooCommerce_Urb_It constructor.
-     */
     function __construct()
     {
-        // Installation & plugin removal
         register_activation_hook(__FILE__, array(__CLASS__, 'install'));
         register_uninstall_hook(__FILE__, array(__CLASS__, 'uninstall'));
 
-        // Update checker
         require_once $this->path . 'includes/plugin-update-checker/plugin-update-checker.php';
 
         $this->update_checker = PucFactory::buildUpdateChecker(self::UPDATE_URL, __FILE__);
         $this->environment = get_option(self::SETTINGS_PREFIX . 'environment');
 
-        // Load text domain
         add_action('plugins_loaded', array($this, 'load_textdomain'));
-
-        // Add shipping methods
         add_action('woocommerce_shipping_init', array($this, 'shipping_init'));
         add_filter('woocommerce_shipping_methods', array($this, 'add_shipping_method'));
-
-        // Widget
         add_action('widgets_init', array($this, 'register_widget'));
-
-        //add_filter('woocommerce_order_button_html', array($this, 'woocommerce_order_confirm'), 99);
+        // add_filter('woocommerce_order_button_html', array($this, 'woocommerce_order_confirm'), 99);
     }
 
     /**
@@ -152,21 +142,21 @@ class WooCommerce_Urb_It
         return $this->{$name};
     }
 
-    // function woocommerce_order_confirm($input_submit)
-    // {
-    //     $order_button_text = explode('"', explode('value=', $input_submit)[1])[1];
-    //     $confirm_button = '<div id="order_confirmation" class="button alt">' . esc_attr($order_button_text) . '</div>';
+    /*function woocommerce_order_confirm($input_submit)
+    {
+        $order_button_text = explode('"', explode('value=', $input_submit)[1])[1];
+        $confirm_button = '<div id="order_confirmation" class="button alt">' . esc_attr($order_button_text) . '</div>';
 
-    //     ob_start();
-    //     $this->template('checkout/confirm_dialog');
-    //     $dialog = ob_get_clean();
+        ob_start();
+        $this->template('checkout/confirm_dialog');
+        $dialog = ob_get_clean();
 
-    //     if (get_option(self::SETTINGS_PREFIX . 'order_confirmation') === 'yes') {
-    //         return $dialog . $confirm_button;
-    //     }
+        if (get_option(self::SETTINGS_PREFIX . 'order_confirmation') === 'yes') {
+            return $dialog . $confirm_button;
+        }
 
-    //     return $input_submit;
-    // }
+        return $input_submit;
+    }*/
 
     /**
      * @param string $name
@@ -176,9 +166,8 @@ class WooCommerce_Urb_It
      */
     function setting($name, $raw = false)
     {
-        if (!$raw && in_array($name, array('x_api_key', 'bearer_token'), true)) {
+        if (!$raw && in_array($name, array('x_api_key', 'bearer_token'), true))
             $name = $this->environment . '_' . $name;
-        }
 
         return get_option(self::SETTINGS_PREFIX . $name);
     }
@@ -191,29 +180,18 @@ class WooCommerce_Urb_It
         return get_option(self::SETTINGS_PREFIX . 'now_validation_time');
     }
 
-    function create_date($minutes) {
+    function create_date($minutes)
+    {
         $now = new DateTime();
+
         if (empty($minutes)) {
             $minutes = self::DEFAULT_PREPARE_TIME;
             $this->log('Preparation time is not set by admin. Using default value instead: ' . $minutes);
         }
+
         $delivery_time = $now->add(new DateInterval('PT' . $minutes . 'M'));
 
         return $delivery_time->add(new DateInterval(self::STD_PROCESS_TIME));
-    }
-
-    /**
-     * @param bool $with_margin
-     *
-     * @return mixed
-     */
-    function specific_time_offset($with_margin = true)
-    {
-        return apply_filters(
-            'woocommerce_urb_it_specific_time_offset',
-            ($with_margin ? '+1 hour 15 min' : '+1 hour 5 min'),
-            $with_margin
-        );
     }
 
     /**
