@@ -11,6 +11,7 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
 
     function __construct()
     {
+        parent::__construct();
         add_action('woocommerce_review_order_after_shipping', array($this, 'fields'));
         add_action('woocommerce_after_checkout_form', array($this, 'add_assets'));
         add_action('woocommerce_before_checkout_form', array($this, 'notice_checkout'));
@@ -18,7 +19,7 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
         add_action('woocommerce_review_order_after_shipping', array($this, 'notice_checkout_shipping'));
         add_action('woocommerce_after_checkout_validation', array($this, 'validate_form'));
         add_action('woocommerce_after_checkout_form', array($this, 'sync_cart'));
-        add_action('woocommerce_thankyou', array($this, 'sync_checkout'));
+        add_action('woocommerce_checkout_order_processed', array($this, 'sync_checkout'));
         add_action('preparation_time', array($this, 'send_order'), 10, 5);
         add_filter('woocommerce_shipping_packages', array($this, 'check_urbit_now_availability'), 100, 1);
     }
@@ -30,6 +31,7 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
         $order = new WC_Order($order_id);
         update_option(self::SETTINGS_PREFIX . $environment . '_checkout_id_' . $order_id, $checkout_id);
         $message = $order->get_customer_note();
+        $delivery_time = null;
 
         $recipient = array(
             'first_name' => $order->get_shipping_first_name(),
@@ -42,18 +44,15 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
             'email' => $order->get_billing_email(),
         );
 
-        if ($order->get_shipping_method() != 'urb-it now')
-            $delivery_time = get_option(self::SETTINGS_PREFIX . $environment . '_delivery_time');
-        else {
-            $now_offset = $this->create_date($this->now_offset());
-            $delivery_time = $now_offset->getTimestamp();
-            $now_offset->sub(new DateInterval(self::STD_PROCESS_TIME));
-            update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id, date('c', $delivery_time));
-            wp_schedule_single_event($now_offset->getTimestamp(), 'preparation_time', array(date('c', $delivery_time), $message, $recipient, $checkout_id, $order_id));
-            return;
-        }
+        $now_offset = $this->create_date($this->now_offset());
+        $cron_time = $this->create_date($this->now_offset())->sub(new DateInterval(self::STD_PROCESS_TIME));
 
-        $this->validate->order($delivery_time, $message, $recipient, $checkout_id);
+        $shipping_method = array_shift($order->get_items('shipping'));
+        $delivery_time = $shipping_method->get_method_id() != 'urb_it_one_hour' ?
+            new DateTime(get_option(self::SETTINGS_PREFIX . $environment . '_delivery_time')) : $now_offset;
+
+        wp_schedule_single_event($cron_time->getTimestamp(), 'preparation_time', array(date('c', $delivery_time->getTimestamp()), $message, $recipient, $checkout_id, $order_id));
+        update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id, date('c', $delivery_time->getTimestamp()));
     }
 
     /**
@@ -187,10 +186,10 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
                 && !in_array('urb_it_specific_time', $posted['shipping_method'])))
             return;
 
-        $phone = $this->sanitize_phone($posted['billing_phone']);
+        $phone = $posted['billing_phone'];
 
-        if (!$phone)
-            throw new Exception(__('Please enter a valid cellphone number.', self::LANG));
+        if (!$phone || !preg_match('/^\+[1-9]\d{6,}$/', $phone))
+            throw new Exception(__('Please enter a valid cellphone number. Like +600000000', self::LANG));
 
         if (in_array('urb_it_specific_time', $posted['shipping_method'])) {
             $valid_time = true;
@@ -214,7 +213,7 @@ class WooCommerce_Urb_It_Frontend_Checkout extends WooCommerce_Urb_It_Frontend
             if (!$valid_time)
                 return;
 
-            $delivery_time = $this->date($date . ' ' . $time);
+            $delivery_time = new DateTime($date . ' ' . $time);
             update_option(self::SETTINGS_PREFIX . $environment . '_delivery_time', date('c', $delivery_time->getTimestamp()));
 
         } elseif (in_array('urb_it_one_hour', $posted['shipping_method'])) {

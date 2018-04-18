@@ -9,6 +9,7 @@ class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
 {
     function __construct()
     {
+        parent::__construct();
         add_action('init', array($this, 'register_order_status'));
         add_filter('wc_order_statuses', array($this, 'order_statuses'));
         add_action('woocommerce_checkout_update_order_meta', array($this, 'save_data'), 10, 2);
@@ -74,9 +75,9 @@ class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
     // Send delivery info on order status change
     function status_event($order_id, $status_from, $status_to, $order)
     {
-        $shipping_method = $order->get_shipping_method();
+        $shipping_method = array_shift($order->get_items('shipping'));
 
-        if ($shipping_method == 'urb-it now' && 'wc-' . $status_to == get_option(self::SETTINGS_PREFIX . 'now_status')) {
+        if (($shipping_method->get_method_id() == 'urb_it_one_hour' || $shipping_method->get_method_id() == 'urb_it_specific_time') && 'wc-' . $status_to == get_option(self::SETTINGS_PREFIX . 'now_status')) {
             $environment = get_option(self::SETTINGS_PREFIX . 'environment');
             $delivery_time = get_option(self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id);
             if (!$delivery_time) {
@@ -97,12 +98,12 @@ class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
 
             $checkout_id = get_option(self::SETTINGS_PREFIX . $environment . '_checkout_id_' . $order_id);
 
-            $this->validate->order($delivery_time, $order->message, $recipient, $checkout_id);
+            $this->validate->order($delivery_time, $order->get_meta('message'), $recipient, $checkout_id);
 
             // Clean order actions and info
             $timestamp = new DateTime($delivery_time);
             $timestamp->sub(new DateInterval(self::STD_PROCESS_TIME));
-            wp_unschedule_event($timestamp->getTimestamp(), 'preparation_time', array($delivery_time, $order->message, $recipient, $checkout_id, $order_id));
+            wp_unschedule_event($timestamp->getTimestamp(), 'preparation_time', array($delivery_time, $order->get_meta('message'), $recipient, $checkout_id, $order_id));
             delete_option( self::SETTINGS_PREFIX . $environment . '_checkout_id_' . $order_id );
             delete_option( self::SETTINGS_PREFIX . $environment . '_delivery_time_' . $order_id );
         }

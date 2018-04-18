@@ -16,6 +16,7 @@ class WC_Urb_It_One_Hour extends WC_Shipping_Method
 
     function __construct()
     {
+        parent::__construct();
         $this->id = 'urb_it_one_hour';
         $this->method_title = __('urb-it now', self::LANG);
         $this->method_description = __('urb-it now allows deliveries now.', self::LANG);

@@ -13,8 +13,8 @@ class WooCommerce_Urb_It_Frontend extends WooCommerce_Urb_It
     {
         parent::__construct();
 
-        self::$_modules['checkout'] = include $this->path . 'includes/class-frontend-checkout.php';
-        self::$_modules['postcode_validator'] = include $this->path . 'includes/class-frontend-postcode-validator.php';
+        self::$_modules['checkout'] = include_once $this->path . 'includes/class-frontend-checkout.php';
+        self::$_modules['postcode_validator'] = include_once $this->path . 'includes/class-frontend-postcode-validator.php';
 
         // Notices
         add_action('woocommerce_add_to_cart', array($this, 'notice_added_product'), 10, 6);

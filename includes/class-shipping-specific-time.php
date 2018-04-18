@@ -16,6 +16,7 @@ class WC_Urb_It_Specific_Time extends WC_Shipping_Method
 
     public function __construct()
     {
+        parent::__construct();
         $this->id = 'urb_it_specific_time';
         $this->method_title = __('urb-it specific time', self::LANG);
         $this->method_description = __('urb-it specific time allows deliveries at a specific time.', self::LANG);

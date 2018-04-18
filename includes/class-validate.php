@@ -9,6 +9,7 @@ class WooCommerce_Urb_It_Validate extends WooCommerce_Urb_It
 {
     function __construct()
     {
+        parent::__construct();
         // $this->plugin = WooCommerce_Urb_It::instance();
     }
 

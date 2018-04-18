@@ -71,13 +71,13 @@ class UrbRequest
 
         if ($this->httpStatus !== 204) {
             if (isset($this->httpBody)) {
-                throw new Exception($this->httpBody->errors->message);
+                throw new Exception(print_r($this->httpBody->errors, true));
             } else {
                 throw new Exception('HTTP ' . $this->httpStatus);
             }
         }
 
-        return $this->httpBody;
+        return $this->httpStatus;
     }
 
     function CreateCart($items)

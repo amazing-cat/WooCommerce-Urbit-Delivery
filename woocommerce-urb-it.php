@@ -60,6 +60,8 @@ class WooCommerce_Urb_It
 
     protected $update_checker;
 
+    protected $path = __DIR__ . "/";
+
     protected $country_codes = array(
         '46',  // Sweden
         '33',  // France
@@ -79,14 +81,14 @@ class WooCommerce_Urb_It
     {
         if (self::$_instance === null) {
             self::$_instance =
-                include WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-' . (is_admin() ? 'admin' : 'frontend')
+                include_once WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-' . (is_admin() ? 'admin' : 'frontend')
                     . '.php';
 
             self::$_modules = array(
-                'order'         => include(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-order.php'),
-                'validate'      => include(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-validate.php'),
-                'opening_hours' => include(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-opening-hours.php'),
-                'coupon'        => include(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-coupon.php'),
+                'order'         => include_once(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-order.php'),
+                'validate'      => include_once(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-validate.php'),
+                'opening_hours' => include_once(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-opening-hours.php'),
+                'coupon'        => include_once(WOOCOMMERCE_URB_IT_PLUGIN_ROOT . '/includes/class-coupon.php'),
             );
         }
 

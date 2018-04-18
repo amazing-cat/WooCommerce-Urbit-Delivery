@@ -8,6 +8,7 @@ class WooCommerce_Urb_It_Coupon extends WooCommerce_Urb_It
 {
     public function __construct()
     {
+        parent::__construct();
         // Coupon options
         add_action('woocommerce_coupon_options', array($this, 'options_view'));
         add_action('woocommerce_coupon_options_save', array($this, 'options_save'));

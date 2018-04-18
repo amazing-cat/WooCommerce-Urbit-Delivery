@@ -12,6 +12,7 @@ class WooCommerce_Urb_It_Frontend_Postcode_Validator extends WooCommerce_Urb_It_
 
     public function __construct()
     {
+        parent::__construct();
         add_action('wc_ajax_urb_it_validate_postcode', array($this, 'ajax'));
         add_action('woocommerce_single_product_summary', array($this, 'product_page'), 35);
     }

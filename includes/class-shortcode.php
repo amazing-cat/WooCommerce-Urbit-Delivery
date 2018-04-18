@@ -26,7 +26,7 @@ class WooCommerce_Urb_It_Shortcode extends WooCommerce_Urb_It
             $last_status = $woocommerce->session->get('urb_it_postcode_result');
         }
 
-        include(self::$path_templates . 'postcode-validator/form.php');
+        include_once(self::$path_templates . 'postcode-validator/form.php');
 
         add_action('wp_footer', array(__CLASS__, 'postcode_validator_assets'));
 

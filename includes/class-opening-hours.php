@@ -11,6 +11,7 @@ class WooCommerce_Urb_it_Opening_Hours extends WooCommerce_Urb_It
 {
     function __construct()
     {
+        parent::__construct();
         // Turn off caching of shipping method
         add_filter('option_woocommerce_status_options', array($this, 'turn_off_shipping_cache'));
     }
