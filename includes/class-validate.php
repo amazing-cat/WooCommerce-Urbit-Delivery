@@ -143,7 +143,7 @@ class WooCommerce_Urb_It_Validate extends WooCommerce_Urb_It
 
             $order_data = apply_filters('woocommerce_urb_it_validate_order_data', $order_data);
 
-            $this->log('Validating order data. Delivery time:', $delivery_time);
+            $this->log('Validating order data:', $order_data);
 
             $this->urbit->SetDeliveryTimePlaceRecipient($checkout_id, $order_data);
 
