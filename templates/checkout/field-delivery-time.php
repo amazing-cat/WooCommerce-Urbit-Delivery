@@ -64,6 +64,15 @@
                     </select>
 				</p>
 			<?php endif; ?>
+            <div class="urbit-privacy-plicy column-right">
+                <p>
+                    By using Urb-it service you accept the
+                    <a href="https://urb-it.com/terms-of-service">terms</a>
+                    , agree with the
+                    <a href="https://urb-it.com/privacy-policy">privacy policy</a>
+                    and that your entered information is shared with your delivery assistant.
+                </p>
+            </div>
 
 <?php if(!$is_cart): ?>
 		</td>
