@@ -25,9 +25,9 @@ class WooCommerce_Urb_It_Frontend_Postcode_Validator extends WooCommerce_Urb_It_
     public function ajax()
     {
         $data_to_validate = array(
-            'street' => $_GET['street'],
+            // 'street' => $_GET['street'],
             'postcode' => $_GET['postcode'],
-            'city' => $_GET['city'],
+            // 'city' => $_GET['city'],
         );
 
         echo (!empty($data_to_validate) && $this->validate->postcode($data_to_validate)) ? '1' : '0';

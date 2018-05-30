@@ -175,7 +175,7 @@ class WooCommerce_Urb_It_Validate extends WooCommerce_Urb_It
     function postcode($data_to_validate)
     {
         try {
-            $valid = $this->urbit->ValidateDeliveryAddress($data_to_validate);
+            $valid = $this->urbit->ValidatePostalCode($data_to_validate);
 
             if (!$valid) {
                 $this->log('Invalid postcode...');
