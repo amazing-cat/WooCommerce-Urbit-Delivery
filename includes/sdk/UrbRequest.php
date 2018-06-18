@@ -70,12 +70,12 @@ class UrbRequest
 
        $this->Call('GET', 'postalcodes/'. $data_to_validate['postcode']);
 
-         if ($this->httpStatus !== 200 && $this->httpBody->inside_delivery_area !== 'yes') {
-             $body = $this->httpStatus === 400 ? "\n" . $this->httpBody->message : '';
+         if ($this->httpStatus !== 200 && $this->httpBody->inside_delivery_area !== "yes" ) {
+             $body = $this->httpStatus === 400 ? "\n"  .  $this->httpBody->message : '';
              throw new Exception('HTTP ' . $this->httpStatus . $body);
          }
 
-         return ($this->httpStatus === 200);
+         return ($this->httpStatus === 200 && $this->httpBody->inside_delivery_area === "yes");
      }
 
     function SetDeliveryTimePlaceRecipient($checkout_id, $order)
