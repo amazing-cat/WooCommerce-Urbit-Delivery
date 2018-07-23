@@ -70,12 +70,12 @@ class UrbRequest
 
        $this->Call('GET', 'postalcodes/'. $data_to_validate['postcode']);
 
-         if ($this->httpStatus !== 200 && $this->httpBody->inside_delivery_area !== 'yes') {
-             $body = $this->httpStatus === 400 ? "\n" . $this->httpBody->message : '';
+         if ($this->httpStatus !== 200 && $this->httpBody->inside_delivery_area !== "yes" ) {
+             $body = $this->httpStatus === 400 ? "\n"  .  $this->httpBody->message : '';
              throw new Exception('HTTP ' . $this->httpStatus . $body);
          }
 
-         return ($this->httpStatus === 200);
+         return ($this->httpStatus === 200 && $this->httpBody->inside_delivery_area === "yes");
      }
 
     function SetDeliveryTimePlaceRecipient($checkout_id, $order)
@@ -158,6 +158,7 @@ class UrbRequest
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Module-Woocommerce-Urbit-Delivery/'. WooCommerce_Urb_It::VERSION.'/Woocommerce/');
 
         $response = curl_exec($ch);
 
