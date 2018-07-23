@@ -158,6 +158,7 @@ class UrbRequest
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Module-Woocommerce-Urbit-Delivery/'. WooCommerce_Urb_It::VERSION.'/Woocommerce/');
 
         $response = curl_exec($ch);
 
