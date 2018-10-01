@@ -14,7 +14,21 @@ class WooCommerce_Urb_It_Order extends WooCommerce_Urb_It
         add_filter('wc_order_statuses', array($this, 'order_statuses'));
         add_action('woocommerce_checkout_update_order_meta', array($this, 'save_data'), 10, 2);
         add_action('woocommerce_order_status_changed', array($this, 'status_event'), 10, 4);
+        add_action( 'woocommerce_admin_order_data_after_order_details',  array($this, 'kia_display_order_data_in_admin'));
     }
+
+
+    function kia_display_order_data_in_admin($order ){
+
+      $order = wc_get_order();
+
+      if ($order->has_shipping_method('urb_it_one_hour') || $order->has_shipping_method('urb_it_specific_time')) {
+
+        echo $order_status ='<div class="order_data_column">'.'<p><a href="https://stage-retailer-portal.urb-it.com" class="button" target="_blank" >CHECK  URB-IT ORDER STATUS</a></p>
+            </div>';
+        }
+
+     }
 
     function register_order_status()
     {
