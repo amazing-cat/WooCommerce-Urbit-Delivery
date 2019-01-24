@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name: WooCommerce Urb-it Shipping
- * Plugin URI: http://urb-it.com/
+ * Plugin URI: https://github.com/urbitassociates/WooCommerce-Urbit-Delivery
  * Description: Let your customers choose urb-it as shipping method.
- * Version: 3.0.3
- * Author: Webbmekanikern
- * Author URI: http://www.webbmekanikern.se/
+ * Version: 1.1.10
+ * Author: Urb-it
+ * Author URI: https://urb-it.com/
  * Text Domain: woocommerce-urb-it
  * Domain Path: /languages/
- * License: GPL2
+ * License: GPL3
  */
 
 // Exit if accessed directly
@@ -20,7 +20,7 @@ define('WOOCOMMERCE_URB_IT_PLUGIN_ROOT', __DIR__);
 
 class WooCommerce_Urb_It
 {
-    const VERSION = '3.0.3';
+    const VERSION = '1.1.10';
     const LANG    = 'woocommerce-urb-it';
 
     const COMPANY_URL = 'https://urb-it.com/';
