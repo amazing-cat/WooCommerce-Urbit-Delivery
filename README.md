@@ -24,7 +24,7 @@ The module is installed on your Woocommerce shop.
 The plugin is not published in any marketplace yet so the only way to install it right now is to upload a **.zip** file from the Urb-it’s github repository. 
 
 1. Click **Clone or download** (green button on the right side).
-2. Push a **Download ZIP** button and the archive will be downloaded to your local machine.
+2. Press the **Download ZIP** button and the archive will be downloaded to your local machine.
 3. Go to your Wordpress store back office page (admin panel).
 4. Navigate **Plugins** section on the left menu bar.
 5. Click **Add new**.
